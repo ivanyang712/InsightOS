@@ -1,0 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS insightos;
+
+CREATE TABLE IF NOT EXISTS insightos.health_events (
+    id BIGSERIAL PRIMARY KEY,
+    status TEXT NOT NULL,
+    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
