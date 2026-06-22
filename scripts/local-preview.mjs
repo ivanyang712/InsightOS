@@ -1,0 +1,173 @@
+import { createServer } from "node:http";
+
+const port = Number(process.env.PORT ?? 3000);
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+const html = `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InsightOS</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f7f8f5;
+        --foreground: #17201a;
+        --muted: #5c675f;
+        --panel: #ffffff;
+        --border: #d9ded7;
+        --accent: #176c5f;
+        --accent-soft: #e1f2ee;
+        --warning: #9a5b12;
+      }
+      * { box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .shell { min-height: 100vh; padding: 64px; }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 48px;
+        align-items: center;
+        max-width: 1120px;
+        min-height: calc(100vh - 128px);
+        margin: 0 auto;
+      }
+      .eyebrow {
+        margin: 0 0 16px;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+      h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 84px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+      .lede {
+        max-width: 680px;
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: 20px;
+        line-height: 1.6;
+      }
+      .health-card {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 24px;
+        box-shadow: 0 20px 60px rgb(23 32 26 / 8%);
+      }
+      .health-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .health-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .badge.warning { background: #fff3db; color: var(--warning); }
+      .health-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .health-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        color: var(--muted);
+      }
+      .health-row strong { color: var(--foreground); }
+      @media (max-width: 820px) {
+        .shell { padding: 32px 20px; }
+        .hero { grid-template-columns: 1fr; min-height: auto; }
+        h1 { font-size: 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">InsightOS MVP</p>
+          <h1>可验证的 AI 投资研究工作台</h1>
+          <p class="lede">当前骨架已包含 Next.js 前端、FastAPI 后端、PostgreSQL、Redis 和 Docker Compose。</p>
+        </div>
+        <aside class="health-card">
+          <div class="health-header">
+            <p class="health-title">System health</p>
+            <span id="status" class="badge warning">Checking</span>
+          </div>
+          <ul class="health-list">
+            <li class="health-row"><span>Service</span><strong id="service">Connecting...</strong></li>
+            <li class="health-row"><span>Environment</span><strong id="environment">-</strong></li>
+            <li class="health-row"><span>PostgreSQL</span><strong id="database">-</strong></li>
+            <li class="health-row"><span>Redis</span><strong id="redis">-</strong></li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      const apiBaseUrl = ${JSON.stringify(apiBaseUrl)};
+      fetch(apiBaseUrl + "/health")
+        .then((response) => response.json())
+        .then((data) => {
+          const status = document.getElementById("status");
+          status.textContent = data.status;
+          status.className = data.status === "ok" ? "badge" : "badge warning";
+          document.getElementById("service").textContent = data.service;
+          document.getElementById("environment").textContent = data.environment;
+          document.getElementById("database").textContent = data.checks.database ? "Connected" : "Unavailable";
+          document.getElementById("redis").textContent = data.checks.redis ? "Connected" : "Unavailable";
+        })
+        .catch((error) => {
+          document.getElementById("status").textContent = "Unavailable";
+          document.getElementById("service").textContent = error.message;
+        });
+    </script>
+  </body>
+</html>`;
+
+createServer((request, response) => {
+  if (request.url === "/" || request.url?.startsWith("/?")) {
+    response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    response.end(html);
+    return;
+  }
+
+  response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  response.end("Not found");
+}).listen(port, () => {
+  console.log(`InsightOS local preview: http://localhost:${port}`);
+});

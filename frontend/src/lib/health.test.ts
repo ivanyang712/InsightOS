@@ -1,10 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import assert from "node:assert/strict";
+import { afterEach, describe, it, mock } from "node:test";
 
 import { fetchHealth, getApiBaseUrl } from "./health";
 
 describe("health api helpers", () => {
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
   it("uses the configured API base url", () => {
-    expect(getApiBaseUrl()).toBe("http://localhost:8000");
+    assert.equal(getApiBaseUrl(), "http://localhost:8000");
   });
 
   it("fetches the health response", async () => {
@@ -18,14 +23,16 @@ describe("health api helpers", () => {
       }
     };
 
-    vi.stubGlobal(
+    mock.method(
+      globalThis,
       "fetch",
-      vi.fn().mockResolvedValue({
+      async () =>
+        ({
         ok: true,
         json: async () => payload
-      })
+        }) as Response
     );
 
-    await expect(fetchHealth()).resolves.toEqual(payload);
+    assert.deepEqual(await fetchHealth(), payload);
   });
 });

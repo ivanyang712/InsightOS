@@ -46,6 +46,18 @@ docker compose up --build
 
 首页会调用后端 `/health`，展示 API、数据库和 Redis 的健康状态。
 
+### 无 Docker 的本地预览
+
+如果当前机器还没有 Docker Desktop，也可以先启动一个轻量主页预览：
+
+```bash
+cd frontend
+npm install
+npm run preview:local
+```
+
+这个预览会打开 `http://localhost:3000` 并调用本地后端 `/health`。完整的 PostgreSQL 和 Redis 仍然需要 Docker Compose。
+
 ## 常见启动问题
 
 ### `docker: command not found`

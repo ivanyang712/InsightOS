@@ -8,7 +8,8 @@
     "start": "next start --hostname 0.0.0.0",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "tsx --test src/**/*.test.ts",
+    "preview:local": "node ../scripts/local-preview.mjs"
   },
   "dependencies": {
     "next": "^15.0.0",
@@ -22,7 +23,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.12.0",
     "eslint-config-next": "^15.0.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "tsx": "^4.20.0",
+    "typescript": "^5.6.0"
   }
 }
