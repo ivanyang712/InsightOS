@@ -58,6 +58,12 @@ npm run preview:local
 
 这个预览会打开 `http://localhost:3000` 并调用本地后端 `/health`。完整的 PostgreSQL 和 Redis 仍然需要 Docker Compose。
 
+如果已经安装过本地依赖，也可以用脚本启动后台预览：
+
+```bash
+bash scripts/start-local.sh
+```
+
 ## 常见启动问题
 
 ### `docker: command not found`
