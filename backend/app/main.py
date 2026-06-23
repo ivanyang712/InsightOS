@@ -29,3 +29,13 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+
+
+@app.get("/")
+def root() -> dict[str, object]:
+    return {
+        "service": settings.app_name,
+        "status": "running",
+        "health_url": "/health",
+        "docs_url": "/docs",
+    }

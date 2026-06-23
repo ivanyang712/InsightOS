@@ -4,6 +4,14 @@ from app.api import health
 from app.main import app
 
 
+def test_root_returns_service_metadata() -> None:
+    response = TestClient(app).get("/")
+
+    assert response.status_code == 200
+    assert response.json()["service"] == "InsightOS API"
+    assert response.json()["health_url"] == "/health"
+
+
 def test_health_check_ok(monkeypatch) -> None:
     monkeypatch.setattr(health, "check_database", lambda: True)
     monkeypatch.setattr(health, "check_redis", lambda: True)
