@@ -108,6 +108,15 @@ mypy app
 pytest
 ```
 
+数据库迁移：
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+数据模型和证据链字段说明见 [docs/data-dictionary.md](docs/data-dictionary.md)。
+
 Frontend:
 
 ```bash
