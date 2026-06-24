@@ -1,3 +1,4 @@
+import { DemoResearchPanel } from "@/src/components/DemoResearchPanel";
 import { HealthPanel } from "@/src/components/HealthPanel";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         </div>
         <HealthPanel />
       </section>
+      <DemoResearchPanel />
     </main>
   );
 }

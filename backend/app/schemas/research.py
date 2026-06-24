@@ -267,3 +267,33 @@ class AlertCreate(ProvenanceSchema):
 
 class AlertRead(AlertCreate, ReadSchema):
     pass
+
+
+class RawDataRecordCreate(ProvenanceSchema):
+    connector_name: str
+    request_url: str
+    request_params: dict[str, Any] | None = None
+    response_payload: dict[str, Any]
+    response_status: int | None = None
+    normalized_status: str
+    error_message: str | None = None
+
+
+class RawDataRecordRead(RawDataRecordCreate, ReadSchema):
+    pass
+
+
+class DataUpdateLogCreate(ProvenanceSchema):
+    connector_name: str
+    job_type: str
+    target_identifier: str
+    started_at: datetime
+    finished_at: datetime | None = None
+    status: str
+    records_read: int = 0
+    records_written: int = 0
+    error_message: str | None = None
+
+
+class DataUpdateLogRead(DataUpdateLogCreate, ReadSchema):
+    pass

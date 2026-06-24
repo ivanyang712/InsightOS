@@ -357,3 +357,34 @@ class Alert(EvidenceModelMixin, Base):
     watchlist: Mapped[Watchlist | None] = relationship(back_populates="alerts")
     company: Mapped[Company | None] = relationship(back_populates="alerts")
     security: Mapped[Security | None] = relationship(back_populates="alerts")
+
+
+class RawDataRecord(EvidenceModelMixin, Base):
+    __tablename__ = "raw_data_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "connector_name", "request_url", "source_hash", name="uq_raw_connector_url_hash"
+        ),
+    )
+
+    connector_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    request_url: Mapped[str] = mapped_column(Text, nullable=False)
+    request_params: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    response_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    response_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    normalized_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class DataUpdateLog(EvidenceModelMixin, Base):
+    __tablename__ = "data_update_logs"
+
+    connector_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    job_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_identifier: Mapped[str] = mapped_column(String(120), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    records_read: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    records_written: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

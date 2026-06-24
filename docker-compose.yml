@@ -38,6 +38,10 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://insightos:insightos@postgres:5432/insightos}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:3000}
+      SEC_USER_AGENT: ${SEC_USER_AGENT:-InsightOS/0.1 contact=your-email@example.com}
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      CONNECTOR_TIMEOUT_SECONDS: ${CONNECTOR_TIMEOUT_SECONDS:-10}
+      CONNECTOR_CACHE_TTL_SECONDS: ${CONNECTOR_CACHE_TTL_SECONDS:-300}
     ports:
       - "8000:8000"
     depends_on:

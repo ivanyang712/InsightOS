@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InsightOS Agent Contracts",
+  "$defs": {
+    "citation": {
+      "type": "object",
+      "required": [
+        "source_name",
+        "source_url",
+        "published_at",
+        "retrieved_at",
+        "confidence_score"
+      ],
+      "properties": {
+        "source_name": { "type": "string" },
+        "source_url": { "type": "string" },
+        "published_at": { "type": "string" },
+        "retrieved_at": { "type": "string" },
+        "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "evidence_item": {
+      "type": "object",
+      "required": ["id", "text", "citation"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "fact_value": { "type": ["string", "null"] },
+        "formula": { "type": ["string", "null"] },
+        "citation": { "$ref": "#/$defs/citation" }
+      },
+      "additionalProperties": false
+    },
+    "agent_input": {
+      "type": "object",
+      "required": ["agent_name", "task", "evidence"],
+      "properties": {
+        "agent_name": {
+          "enum": [
+            "company_research",
+            "industry_research",
+            "financial_statement",
+            "valuation",
+            "risk_auditor",
+            "investment_committee"
+          ]
+        },
+        "task": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence_item" }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_output": {
+      "type": "object",
+      "required": [
+        "agent_name",
+        "facts",
+        "calculations",
+        "assumptions",
+        "interpretations",
+        "risks",
+        "open_questions",
+        "citations",
+        "confidence_score"
+      ],
+      "properties": {
+        "agent_name": { "type": "string" },
+        "facts": { "type": "array", "items": { "type": "string" } },
+        "calculations": { "type": "array", "items": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "interpretations": { "type": "array", "items": { "type": "string" } },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "open_questions": { "type": "array", "items": { "type": "string" } },
+        "citations": { "type": "array", "items": { "type": "string" } },
+        "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "research_report": {
+      "type": "object",
+      "required": [
+        "facts",
+        "calculations",
+        "assumptions",
+        "interpretation",
+        "risks",
+        "open_questions",
+        "citations",
+        "conflicting_evidence",
+        "confidence_score",
+        "risk_audit"
+      ],
+      "properties": {
+        "facts": { "type": "array", "items": { "type": "string" } },
+        "calculations": { "type": "array", "items": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "interpretation": { "type": "array", "items": { "type": "string" } },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "open_questions": { "type": "array", "items": { "type": "string" } },
+        "citations": { "type": "array", "items": { "type": "string" } },
+        "conflicting_evidence": { "type": "array", "items": { "type": "string" } },
+        "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "risk_audit": {
+          "type": "object",
+          "required": ["requires_human_review", "notes"],
+          "properties": {
+            "requires_human_review": { "type": "boolean" },
+            "notes": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

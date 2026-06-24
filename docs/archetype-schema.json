@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InsightOS Industry Archetype",
+  "type": "object",
+  "required": [
+    "key",
+    "name",
+    "operating_metrics",
+    "financial_metrics",
+    "common_risks",
+    "valuation_priority",
+    "peer_comparison_principles",
+    "fallback_metrics",
+    "not_applicable_metrics"
+  ],
+  "properties": {
+    "key": { "type": "string" },
+    "name": { "type": "string" },
+    "operating_metrics": { "type": "array", "items": { "type": "string" } },
+    "financial_metrics": { "type": "array", "items": { "type": "string" } },
+    "common_risks": { "type": "array", "items": { "type": "string" } },
+    "valuation_priority": { "type": "array", "items": { "type": "string" } },
+    "peer_comparison_principles": { "type": "array", "items": { "type": "string" } },
+    "fallback_metrics": { "type": "array", "items": { "type": "string" } },
+    "not_applicable_metrics": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

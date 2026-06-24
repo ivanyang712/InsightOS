@@ -1,0 +1,53 @@
+{
+  "cik": 320193,
+  "entityName": "Apple Inc.",
+  "facts": {
+    "us-gaap": {
+      "Revenues": {
+        "label": "Revenue",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 391035000000
+            }
+          ]
+        }
+      },
+      "OperatingIncomeLoss": {
+        "label": "Operating Income",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 123216000000
+            }
+          ]
+        }
+      },
+      "NetIncomeLoss": {
+        "label": "Net Income",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 93736000000
+            }
+          ]
+        }
+      }
+    }
+  }
+}

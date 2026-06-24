@@ -1,0 +1,17 @@
+{
+  "cik": "320193",
+  "name": "Apple Inc.",
+  "tickers": ["AAPL"],
+  "exchanges": ["Nasdaq"],
+  "sic": "3571",
+  "sicDescription": "Electronic Computers",
+  "filings": {
+    "recent": {
+      "accessionNumber": ["0000320193-25-000079", "0000320193-25-000070"],
+      "filingDate": ["2025-11-01", "2025-08-01"],
+      "reportDate": ["2025-09-27", "2025-06-28"],
+      "form": ["10-K", "10-Q"],
+      "primaryDocument": ["aapl-20250927.htm", "aapl-20250628.htm"]
+    }
+  }
+}

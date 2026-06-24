@@ -109,9 +109,41 @@ const html = `<!doctype html>
         color: var(--muted);
       }
       .health-row strong { color: var(--foreground); }
+      .demo-panel {
+        max-width: 1120px;
+        margin: 0 auto 64px;
+        border-top: 1px solid var(--border);
+        padding-top: 36px;
+      }
+      .panel-heading { max-width: 760px; margin-bottom: 24px; }
+      .panel-heading h2 { margin: 0; font-size: 32px; letter-spacing: 0; }
+      .panel-heading p { color: var(--muted); line-height: 1.6; }
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .demo-grid article {
+        min-height: 260px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 20px;
+      }
+      .demo-grid h3 { margin: 0 0 12px; font-size: 18px; }
+      .demo-grid p, .demo-grid li { color: var(--muted); line-height: 1.5; }
+      .score-row {
+        display: grid;
+        gap: 4px;
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+        color: var(--muted);
+      }
+      .score-row strong { color: var(--foreground); }
       @media (max-width: 820px) {
         .shell { padding: 32px 20px; }
         .hero { grid-template-columns: 1fr; min-height: auto; }
+        .demo-grid { grid-template-columns: 1fr; }
         h1 { font-size: 44px; }
       }
     </style>
@@ -137,6 +169,29 @@ const html = `<!doctype html>
           </ul>
         </aside>
       </section>
+      <section class="demo-panel">
+        <div class="panel-heading">
+          <p class="eyebrow">Research Workflow Demo</p>
+          <h2>Nvidia、半导体设备产业、云平台对比</h2>
+          <p id="demo-notice">Loading demo research workflow...</p>
+        </div>
+        <div class="demo-grid">
+          <article>
+            <h3>Nvidia Company Research</h3>
+            <p id="nvidia-summary">Loading...</p>
+            <ul id="nvidia-risks"></ul>
+          </article>
+          <article>
+            <h3 id="industry-title">Industry Research</h3>
+            <p id="industry-cycle">Loading...</p>
+            <p id="industry-tracking"></p>
+          </article>
+          <article>
+            <h3 id="comparison-title">Company Comparison</h3>
+            <div id="comparison-scores"></div>
+          </article>
+        </div>
+      </section>
     </main>
     <script>
       const apiBaseUrl = ${JSON.stringify(apiBaseUrl)};
@@ -154,6 +209,29 @@ const html = `<!doctype html>
         .catch((error) => {
           document.getElementById("status").textContent = "Unavailable";
           document.getElementById("service").textContent = error.message;
+        });
+      Promise.all([
+        fetch(apiBaseUrl + "/api/demo/research/nvidia").then((response) => response.json()),
+        fetch(apiBaseUrl + "/api/demo/industry/semiconductor-equipment").then((response) => response.json()),
+        fetch(apiBaseUrl + "/api/demo/comparison/cloud-platforms").then((response) => response.json())
+      ])
+        .then(([nvidia, industry, comparison]) => {
+          document.getElementById("demo-notice").textContent = nvidia.demo_notice;
+          document.getElementById("nvidia-summary").textContent = nvidia.research_output.executive_summary;
+          document.getElementById("nvidia-risks").innerHTML = nvidia.research_output.risks
+            .slice(0, 4)
+            .map((risk) => "<li>" + risk + "</li>")
+            .join("");
+          document.getElementById("industry-title").textContent = industry.industry;
+          document.getElementById("industry-cycle").textContent = "Cycle indicators: " + industry.cycle_indicators.join(", ");
+          document.getElementById("industry-tracking").textContent = "Tracking metrics: " + industry.tracking_metrics.join(", ");
+          document.getElementById("comparison-title").textContent = comparison.comparison;
+          document.getElementById("comparison-scores").innerHTML = comparison.score_matrix
+            .map((row) => "<div class='score-row'><strong>" + row.ticker + "</strong><span>Moat " + row.scores.moat + "</span><span>FCF " + row.scores.fcf + "</span><span>Valuation " + row.scores.valuation + "</span></div>")
+            .join("");
+        })
+        .catch((error) => {
+          document.getElementById("demo-notice").textContent = error.message;
         });
     </script>
   </body>

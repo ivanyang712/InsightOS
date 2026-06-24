@@ -4,6 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.analysis import router as analysis_router
+from app.api.archetypes import router as archetypes_router
+from app.api.connectors import router as connectors_router
+from app.api.demo import router as demo_router
 from app.api.health import router as health_router
 from app.core.config import settings
 
@@ -29,6 +33,10 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(connectors_router)
+app.include_router(archetypes_router)
+app.include_router(demo_router)
+app.include_router(analysis_router)
 
 
 @app.get("/")

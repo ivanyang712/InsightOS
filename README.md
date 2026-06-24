@@ -1,6 +1,8 @@
 # InsightOS
 
-InsightOS 是一个 AI 投资研究系统骨架。当前版本只包含本地可运行的全栈基础设施，不接入真实市场数据，也不调用外部付费 API。
+InsightOS 是一个 AI 投资研究系统骨架。当前版本包含本地可运行的全栈基础设施、证据链数据模型、SEC/FRED 可信数据连接器框架、财务分析与估值引擎、行业 archetype、Agent 编排骨架和研究质量检查。
+
+默认演示和测试使用合成数据 fixture，不把合成数据当作生产市场数据。真实外部数据仅通过配置后的 SEC/FRED connector 拉取，并先进入 raw layer。
 
 ## 技术栈
 
@@ -32,6 +34,8 @@ bash scripts/doctor.sh
 cp .env.example .env
 ```
 
+如需调用 SEC，请把 `.env` 里的 `SEC_USER_AGENT` 改成可识别的联系信息。FRED 需要把 `FRED_API_KEY` 设置为自己的 key。
+
 2. 启动服务：
 
 ```bash
@@ -45,6 +49,7 @@ docker compose up --build
 - Backend API docs: http://localhost:8000/docs
 
 首页会调用后端 `/health`，展示 API、数据库和 Redis 的健康状态。
+首页还会调用 demo API，展示 Nvidia 公司研究、全球半导体设备产业、云平台对比三个可复算演示。
 
 ### 无 Docker 的本地预览
 
@@ -126,6 +131,53 @@ npm run lint
 npm run typecheck
 npm test
 ```
+
+## API 演示
+
+本地服务启动后可以访问：
+
+- Backend metadata: http://localhost:8000/
+- Backend health: http://localhost:8000/health
+- API docs: http://localhost:8000/docs
+- Demo Nvidia report: http://localhost:8000/api/demo/research/nvidia
+- Demo semiconductor equipment industry: http://localhost:8000/api/demo/industry/semiconductor-equipment
+- Demo Microsoft/Google/Amazon comparison: http://localhost:8000/api/demo/comparison/cloud-platforms
+- Archetype examples: http://localhost:8000/api/archetypes/examples
+- Financial quality API: `POST /api/analysis/financial-quality`
+- DCF API: `POST /api/analysis/valuation/dcf`
+- Multiple valuation API: `POST /api/analysis/valuation/multiple`
+- Reverse DCF API: `POST /api/analysis/valuation/reverse-dcf`
+- Quality audit API: `POST /api/analysis/quality/ai-output`
+- Agent report API: `POST /api/analysis/agents/research-report`
+
+### 拉取 Apple 基础数据演示
+
+Apple 的 SEC CIK 是 `0000320193`。配置好 `SEC_USER_AGENT` 后，可以用：
+
+```bash
+curl http://localhost:8000/api/connectors/sec/company/0000320193/profile
+curl http://localhost:8000/api/connectors/sec/company/0000320193/filings
+curl http://localhost:8000/api/connectors/sec/company/0000320193/facts
+```
+
+这些接口会返回 raw record 结构、来源 URL、拉取时间、source hash，以及 normalized facts。SEC 请求有可识别 User-Agent、缓存、重试和每秒不超过 10 次的限流。
+
+FRED 示例：
+
+```bash
+curl http://localhost:8000/api/connectors/fred/series/FEDFUNDS
+```
+
+如果没有配置 `FRED_API_KEY`，FRED endpoint 会返回明确错误，而不是伪造数据。
+
+## 研究系统文档
+
+- PRD: [docs/prd.md](docs/prd.md)
+- 数据字典: [docs/data-dictionary.md](docs/data-dictionary.md)
+- 公式文档: [docs/formulas.md](docs/formulas.md)
+- 行业 archetype JSON schema: [docs/archetype-schema.json](docs/archetype-schema.json)
+- Agent JSON schema: [docs/agent-schemas.json](docs/agent-schemas.json)
+- 研究质量体系: [docs/research-quality.md](docs/research-quality.md)
 
 ## 项目结构
 
