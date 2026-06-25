@@ -172,7 +172,7 @@ const html = `<!doctype html>
       <section class="demo-panel">
         <div class="panel-heading">
           <p class="eyebrow">Research Workflow Demo</p>
-          <h2>Nvidia、半导体设备产业、云平台对比</h2>
+          <h2>InsightOS 投研工作台体验</h2>
           <p id="demo-notice">Loading demo research workflow...</p>
         </div>
         <div class="demo-grid">
@@ -231,7 +231,45 @@ const html = `<!doctype html>
             .join("");
         })
         .catch((error) => {
-          document.getElementById("demo-notice").textContent = error.message;
+          const fallback = {
+            nvidia: {
+              demo_notice: "Synthetic demo data for workflow testing only. Backend API unavailable.",
+              research_output: {
+                executive_summary: "Demo workflow: AI demand durability depends on capex breadth, margin mix, and customer concentration evidence.",
+                risks: [
+                  "AI capex digestion risk",
+                  "gross margin normalization risk",
+                  "hyperscaler customer concentration risk",
+                  "export-control and supply-chain risk"
+                ]
+              }
+            },
+            industry: {
+              industry: "Global Semiconductor Equipment",
+              cycle_indicators: ["book-to-bill", "wafer fab equipment spend", "memory pricing", "foundry utilization"],
+              tracking_metrics: ["lead times", "foundry utilization", "memory ASP", "capex guidance"]
+            },
+            comparison: {
+              comparison: "Microsoft vs Google vs Amazon",
+              score_matrix: [
+                { ticker: "MSFT", scores: { moat: 88, fcf: 86, valuation: 60 } },
+                { ticker: "GOOGL", scores: { moat: 86, fcf: 90, valuation: 68 } },
+                { ticker: "AMZN", scores: { moat: 84, fcf: 74, valuation: 62 } }
+              ]
+            }
+          };
+          document.getElementById("demo-notice").textContent = fallback.nvidia.demo_notice + " " + error.message;
+          document.getElementById("nvidia-summary").textContent = fallback.nvidia.research_output.executive_summary;
+          document.getElementById("nvidia-risks").innerHTML = fallback.nvidia.research_output.risks
+            .map((risk) => "<li>" + risk + "</li>")
+            .join("");
+          document.getElementById("industry-title").textContent = fallback.industry.industry;
+          document.getElementById("industry-cycle").textContent = "Cycle indicators: " + fallback.industry.cycle_indicators.join(", ");
+          document.getElementById("industry-tracking").textContent = "Tracking metrics: " + fallback.industry.tracking_metrics.join(", ");
+          document.getElementById("comparison-title").textContent = fallback.comparison.comparison;
+          document.getElementById("comparison-scores").innerHTML = fallback.comparison.score_matrix
+            .map((row) => "<div class='score-row'><strong>" + row.ticker + "</strong><span>Moat " + row.scores.moat + "</span><span>FCF " + row.scores.fcf + "</span><span>Valuation " + row.scores.valuation + "</span></div>")
+            .join("");
         });
     </script>
   </body>

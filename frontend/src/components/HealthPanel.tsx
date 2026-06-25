@@ -54,7 +54,19 @@ export function HealthPanel() {
           <p className="health-title">System health</p>
           <span className="badge warning">Unavailable</span>
         </div>
-        <p>{state.message}</p>
+        <p className="health-message">
+          后端 API 暂未连接，前端研究工作台会使用合成 fixture 继续展示。
+        </p>
+        <ul className="health-list">
+          <li className="health-row">
+            <span>API</span>
+            <strong>{state.message}</strong>
+          </li>
+          <li className="health-row">
+            <span>Frontend demo</span>
+            <strong>Available</strong>
+          </li>
+        </ul>
       </aside>
     );
   }

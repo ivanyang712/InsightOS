@@ -127,6 +127,11 @@ h1 {
   color: var(--foreground);
 }
 
+.health-message {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .demo-panel {
   max-width: 1120px;
   margin: 0 auto 64px;
@@ -152,6 +157,118 @@ h1 {
 .panel-heading p {
   color: var(--muted);
   line-height: 1.6;
+}
+
+.view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  padding: 0 14px;
+}
+
+.tab-button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.workspace-panel {
+  min-height: 180px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 20px;
+}
+
+.workspace-panel.wide {
+  grid-column: span 2;
+}
+
+.workspace-panel h3 {
+  margin: 0 0 12px;
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.workspace-panel p,
+.workspace-panel li,
+.workspace-panel small {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.workspace-panel ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.metric-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.metric-strip span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 6px 10px;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.scenario-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.scenario-card strong,
+.scenario-card span {
+  display: block;
+}
+
+.scenario-card span {
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.metric-value {
+  color: var(--accent) !important;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.warning-text {
+  color: var(--warning) !important;
+  font-weight: 700;
 }
 
 .demo-grid {
@@ -208,6 +325,15 @@ h1 {
 
   .demo-grid {
     grid-template-columns: 1fr;
+  }
+
+  .workspace-grid,
+  .scenario-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-panel.wide {
+    grid-column: span 1;
   }
 
   h1 {

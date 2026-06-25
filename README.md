@@ -69,6 +69,8 @@ npm run preview:local
 bash scripts/start-local.sh
 ```
 
+这个脚本会清理旧的 `3000` / `8000` 端口进程，然后启动后端和 Next.js 前端。当前前端带有 synthetic fallback：即使后端还没连上，也可以先在首页体验公司研究、估值情景、行业地图、同业对比和质量审计。
+
 ## 常见启动问题
 
 ### `docker: command not found`
@@ -98,6 +100,21 @@ Docker Desktop 已安装，但还没有启动，或仍在启动中。打开 Dock
 ```bash
 docker compose up --build
 ```
+
+### `http://localhost:8000/health` 访问不了
+
+通常是后端服务没有启动，或旧进程占住端口。可以执行：
+
+```bash
+bash scripts/start-local.sh
+```
+
+然后访问：
+
+- Frontend: http://localhost:3000
+- Backend health: http://localhost:8000/health
+
+如果前端显示 `Synthetic fallback`，说明前端可用，但后端 API 暂时没有连上；页面仍会展示可体验的研究工作台。
 
 注意是 `docker compose`，中间是空格，不是 `docker-compose`。
 
