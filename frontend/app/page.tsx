@@ -1,5 +1,6 @@
 import { DemoResearchPanel } from "@/src/components/DemoResearchPanel";
 import { HealthPanel } from "@/src/components/HealthPanel";
+import { SingleStockResearchPanel } from "@/src/components/SingleStockResearchPanel";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         </div>
         <HealthPanel />
       </section>
+      <SingleStockResearchPanel />
       <DemoResearchPanel />
     </main>
   );

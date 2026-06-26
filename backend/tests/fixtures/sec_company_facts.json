@@ -8,12 +8,35 @@
         "units": {
           "USD": [
             {
+              "fy": 2024,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2024-11-01",
+              "end": "2024-09-28",
+              "val": 383285000000
+            },
+            {
               "fy": 2025,
               "fp": "FY",
               "form": "10-K",
               "filed": "2025-11-01",
               "end": "2025-09-27",
               "val": 391035000000
+            }
+          ]
+        }
+      },
+      "GrossProfit": {
+        "label": "Gross Profit",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 181000000000
             }
           ]
         }
@@ -44,6 +67,149 @@
               "filed": "2025-11-01",
               "end": "2025-09-27",
               "val": 93736000000
+            }
+          ]
+        }
+      },
+      "CashAndCashEquivalentsAtCarryingValue": {
+        "label": "Cash",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 55872000000
+            }
+          ]
+        }
+      },
+      "DebtCurrent": {
+        "label": "Current Debt",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 9000000000
+            }
+          ]
+        }
+      },
+      "LongTermDebtNoncurrent": {
+        "label": "Long-Term Debt",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 85000000000
+            }
+          ]
+        }
+      },
+      "AssetsCurrent": {
+        "label": "Current Assets",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 152987000000
+            }
+          ]
+        }
+      },
+      "LiabilitiesCurrent": {
+        "label": "Current Liabilities",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 176392000000
+            }
+          ]
+        }
+      },
+      "StockholdersEquity": {
+        "label": "Stockholders' Equity",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 56950000000
+            }
+          ]
+        }
+      },
+      "NetCashProvidedByUsedInOperatingActivities": {
+        "label": "Operating Cash Flow",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 118254000000
+            }
+          ]
+        }
+      },
+      "PaymentsToAcquirePropertyPlantAndEquipment": {
+        "label": "Capital Expenditure",
+        "units": {
+          "USD": [
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 12000000000
+            }
+          ]
+        }
+      },
+      "EntityCommonStockSharesOutstanding": {
+        "label": "Shares Outstanding",
+        "units": {
+          "shares": [
+            {
+              "fy": 2024,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2024-11-01",
+              "end": "2024-09-28",
+              "val": 15100000000
+            },
+            {
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-11-01",
+              "end": "2025-09-27",
+              "val": 14800000000
             }
           ]
         }

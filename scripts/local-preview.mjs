@@ -115,6 +115,38 @@ const html = `<!doctype html>
         border-top: 1px solid var(--border);
         padding-top: 36px;
       }
+      .research-panel {
+        max-width: 1120px;
+        margin: 0 auto 64px;
+        border-top: 1px solid var(--border);
+        padding-top: 36px;
+      }
+      .ticker-form {
+        display: grid;
+        grid-template-columns: auto minmax(140px, 220px) auto;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 20px;
+      }
+      .ticker-form input {
+        min-height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font: inherit;
+        padding: 0 12px;
+        text-transform: uppercase;
+      }
+      .ticker-form button {
+        min-height: 42px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        padding: 0 16px;
+      }
       .panel-heading { max-width: 760px; margin-bottom: 24px; }
       .panel-heading h2 { margin: 0; font-size: 32px; letter-spacing: 0; }
       .panel-heading p { color: var(--muted); line-height: 1.6; }
@@ -143,6 +175,7 @@ const html = `<!doctype html>
       @media (max-width: 820px) {
         .shell { padding: 32px 20px; }
         .hero { grid-template-columns: 1fr; min-height: auto; }
+        .ticker-form { grid-template-columns: 1fr; }
         .demo-grid { grid-template-columns: 1fr; }
         h1 { font-size: 44px; }
       }
@@ -168,6 +201,33 @@ const html = `<!doctype html>
             <li class="health-row"><span>Redis</span><strong id="redis">-</strong></li>
           </ul>
         </aside>
+      </section>
+      <section class="research-panel">
+        <div class="panel-heading">
+          <p class="eyebrow">Single Stock Research</p>
+          <h2>单只股票研究主链路</h2>
+          <p>输入 ticker 后，系统会尝试调用后端 SEC/XBRL 研究 API；后端不可用时展示 AAPL synthetic fallback。</p>
+        </div>
+        <form class="ticker-form" id="ticker-form">
+          <label for="ticker">Ticker</label>
+          <input id="ticker" value="AAPL" />
+          <button type="submit">Run Research</button>
+        </form>
+        <div class="demo-grid">
+          <article>
+            <h3 id="stock-title">Apple Inc. (AAPL)</h3>
+            <p id="stock-summary">Loading single-stock research packet...</p>
+            <ul id="stock-facts"></ul>
+          </article>
+          <article>
+            <h3>Financial Metrics</h3>
+            <div id="stock-metrics"></div>
+          </article>
+          <article>
+            <h3>Evidence Chain</h3>
+            <div id="stock-sources"></div>
+          </article>
+        </div>
       </section>
       <section class="demo-panel">
         <div class="panel-heading">
@@ -210,6 +270,55 @@ const html = `<!doctype html>
           document.getElementById("status").textContent = "Unavailable";
           document.getElementById("service").textContent = error.message;
         });
+
+      const stockFallback = {
+        ticker: "AAPL",
+        company: { name: "Apple Inc.", cik: "0000320193" },
+        latest_annual_period: "FY2025",
+        research_report: {
+          facts: [
+            "Apple Inc. is resolved from SEC company submissions.",
+            "Financial facts are normalized from SEC XBRL companyfacts."
+          ]
+        },
+        financial_quality: [
+          { metric: "revenue_growth", status: "ok", value: "0.0202", formula: "(current_revenue - previous_revenue) / previous_revenue" },
+          { metric: "gross_margin", status: "ok", value: "0.4629", formula: "gross_profit / revenue" },
+          { metric: "free_cash_flow_margin", status: "ok", value: "0.2717", formula: "free_cash_flow / revenue" }
+        ],
+        sources: [
+          { source_name: "InsightOS Synthetic SEC Fixture", confidence_score: "0.8500" }
+        ]
+      };
+      function renderStock(report, sourceLabel) {
+        document.getElementById("stock-title").textContent = report.company.name + " (" + report.ticker + ")";
+        document.getElementById("stock-summary").textContent = "Source: " + sourceLabel + " · " + report.latest_annual_period + " · CIK " + report.company.cik;
+        document.getElementById("stock-facts").innerHTML = report.research_report.facts
+          .map((fact) => "<li>" + fact + "</li>")
+          .join("");
+        document.getElementById("stock-metrics").innerHTML = report.financial_quality
+          .slice(0, 4)
+          .map((metric) => "<div class='score-row'><strong>" + metric.metric + "</strong><span>" + (metric.value ?? "无法可靠计算") + "</span><span>" + metric.formula + "</span></div>")
+          .join("");
+        document.getElementById("stock-sources").innerHTML = report.sources
+          .map((source) => "<div class='score-row'><strong>" + source.source_name + "</strong><span>confidence " + source.confidence_score + "</span></div>")
+          .join("");
+      }
+      function loadStock(ticker) {
+        fetch(apiBaseUrl + "/api/research/company/" + encodeURIComponent(ticker))
+          .then((response) => {
+            if (!response.ok) throw new Error("Research API unavailable");
+            return response.json();
+          })
+          .then((report) => renderStock(report, "Live API"))
+          .catch(() => renderStock(stockFallback, "Synthetic fallback"));
+      }
+      document.getElementById("ticker-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        loadStock(document.getElementById("ticker").value || "AAPL");
+      });
+      loadStock("AAPL");
+
       Promise.all([
         fetch(apiBaseUrl + "/api/demo/research/nvidia").then((response) => response.json()),
         fetch(apiBaseUrl + "/api/demo/industry/semiconductor-equipment").then((response) => response.json()),

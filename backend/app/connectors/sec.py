@@ -102,10 +102,15 @@ def normalize_filings(cik: str, payload: dict[str, Any]) -> list[NormalizedFilin
 
 SEC_TAG_MAP = {
     "revenues": ["Revenues", "SalesRevenueNet"],
+    "gross_profit": ["GrossProfit"],
     "operating_income": ["OperatingIncomeLoss"],
     "net_income": ["NetIncomeLoss"],
     "cash": ["CashAndCashEquivalentsAtCarryingValue"],
-    "debt": ["DebtCurrent", "LongTermDebtCurrent", "LongTermDebtNoncurrent"],
+    "debt_current": ["DebtCurrent", "LongTermDebtCurrent"],
+    "long_term_debt_noncurrent": ["LongTermDebtNoncurrent"],
+    "current_assets": ["AssetsCurrent"],
+    "current_liabilities": ["LiabilitiesCurrent"],
+    "shareholders_equity": ["StockholdersEquity"],
     "operating_cash_flow": ["NetCashProvidedByUsedInOperatingActivities"],
     "capital_expenditure": ["PaymentsToAcquirePropertyPlantAndEquipment"],
     "shares_outstanding": ["EntityCommonStockSharesOutstanding"],

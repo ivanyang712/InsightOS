@@ -50,6 +50,7 @@ docker compose up --build
 
 首页会调用后端 `/health`，展示 API、数据库和 Redis 的健康状态。
 首页还会调用 demo API，展示 Nvidia 公司研究、全球半导体设备产业、云平台对比三个可复算演示。
+首页顶部现在有单只股票研究入口，默认跑 `AAPL`。输入 `AAPL`、`NVDA`、`MSFT`、`GOOGL`、`AMZN`、`KO` 或 `JPM` 后，会调用后端单股研究 API，并展示 SEC/XBRL 数据、财务指标、DCF 情景、证据链和质量审计。
 
 ### 无 Docker 的本地预览
 
@@ -161,6 +162,7 @@ npm test
 - Demo Microsoft/Google/Amazon comparison: http://localhost:8000/api/demo/comparison/cloud-platforms
 - Archetype examples: http://localhost:8000/api/archetypes/examples
 - Financial quality API: `POST /api/analysis/financial-quality`
+- Single stock research API: `GET /api/research/company/AAPL`
 - DCF API: `POST /api/analysis/valuation/dcf`
 - Multiple valuation API: `POST /api/analysis/valuation/multiple`
 - Reverse DCF API: `POST /api/analysis/valuation/reverse-dcf`
