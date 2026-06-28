@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import cast
 
 from app.connectors import ConnectorError
+from app.connectors.market_prices import MarketPriceConnector, MarketPriceResponse, PriceBar
 from app.connectors.sec import (
     NormalizedFiling,
     NormalizedFinancialFact,
@@ -13,6 +14,7 @@ from app.connectors.sec import (
     normalize_company_facts,
     normalize_filings,
 )
+from app.core.config import settings
 from app.services.archetypes import match_company_archetype
 from app.services.data_ingestion import raw_record_from_response
 from app.services.financial_analysis import (
@@ -26,13 +28,16 @@ from app.services.financial_analysis import (
 from app.services.quality import audit_ai_output, check_data_quality, estimate_confidence
 
 TICKER_TO_CIK = {
-    "AAPL": "0000320193",
     "NVDA": "0001045810",
     "MSFT": "0000789019",
     "GOOGL": "0001652044",
     "AMZN": "0001018724",
-    "KO": "0000021344",
-    "JPM": "0000019617",
+    "META": "0001326801",
+    "AMD": "0000002488",
+    "AVGO": "0001730168",
+    "TSM": "0001046179",
+    "ASML": "0000937966",
+    "PLTR": "0001321655",
 }
 
 SEC_TO_ENGINE_METRICS = {
@@ -70,13 +75,15 @@ def run_single_company_research(
     ticker: str,
     *,
     connector: SecConnector | None = None,
+    market_connector: MarketPriceConnector | None = None,
+    include_market_data: bool = True,
 ) -> dict[str, object]:
     normalized_ticker = ticker.upper().strip()
     cik = TICKER_TO_CIK.get(normalized_ticker)
     if cik is None:
         raise UnsupportedTickerError(
             f"{normalized_ticker} is not in the MVP ticker map. "
-            "Try AAPL, NVDA, MSFT, GOOGL, AMZN, KO, or JPM."
+            "Try NVDA, MSFT, GOOGL, AMZN, META, AMD, AVGO, TSM, ASML, or PLTR."
         )
 
     sec = connector or SecConnector()
@@ -134,6 +141,41 @@ def run_single_company_research(
             Decimal(str(facts_response.metadata.confidence_score)),
         ),
     ]
+    market_payload = build_unavailable_market_payload("市场价格数据源尚未配置。")
+    validation_payload = build_unavailable_validation_payload(
+        "市场价格数据源尚未配置，暂时无法做收益回测。"
+    )
+    if include_market_data and (
+        market_connector is not None or settings.market_data_provider.lower() != "none"
+    ):
+        try:
+            market_response = (market_connector or MarketPriceConnector()).get_daily_prices(
+                normalized_ticker
+            )
+            market_payload = build_market_price_payload(market_response)
+            validation_payload = build_filing_event_validation(filings, market_response)
+            sources.append(
+                source_summary(
+                    "market_prices",
+                    market_response.metadata.source_name,
+                    market_response.metadata.source_url,
+                    market_response.metadata.published_at,
+                    market_response.metadata.retrieved_at,
+                    market_response.metadata.source_hash,
+                    Decimal(str(market_response.metadata.confidence_score)),
+                )
+            )
+        except ConnectorError as error:
+            market_payload = build_unavailable_market_payload(str(error))
+            validation_payload = build_unavailable_validation_payload(str(error))
+    investor_decision = build_investor_decision(
+        profile,
+        calculations,
+        valuation,
+        market_payload,
+        validation_payload,
+        confidence,
+    )
 
     return {
         "ticker": normalized_ticker,
@@ -161,6 +203,9 @@ def run_single_company_research(
         },
         "financial_quality": calculations,
         "valuation": valuation,
+        "market_price": market_payload,
+        "historical_validation": validation_payload,
+        "investor_decision": investor_decision,
         "research_report": build_report_sections(profile, calculations, valuation, sources),
         "quality_issues": quality_issues,
         "confidence_score": confidence,
@@ -298,6 +343,243 @@ def build_valuation(current: dict[str, MetricValue]) -> dict[str, object]:
             "note": "Assumptions are editable placeholders, not investment advice.",
         },
     }
+
+
+def build_market_price_payload(response: MarketPriceResponse) -> dict[str, object]:
+    latest = response.bars[-1]
+    first_1y = first_bar_on_or_after(response.bars, latest.date - timedelta(days=365))
+    one_year_return = calculate_return(first_1y.close, latest.close) if first_1y else None
+    return {
+        "status": "ok",
+        "ticker": response.ticker,
+        "source_name": response.metadata.source_name,
+        "source_url": response.metadata.source_url,
+        "published_at": response.metadata.published_at,
+        "retrieved_at": response.metadata.retrieved_at,
+        "source_hash": response.metadata.source_hash,
+        "confidence_score": Decimal(str(response.metadata.confidence_score)),
+        "currency": "USD",
+        "unit": "USD/share",
+        "latest_date": latest.date.isoformat(),
+        "latest_close": latest.close,
+        "one_year_return": one_year_return,
+        "trading_days": len(response.bars),
+        "data_status": response.metadata.data_status,
+        "note": "日收盘价来自在线市场数据源，不等同于实时逐笔行情。",
+    }
+
+
+def build_unavailable_market_payload(message: str) -> dict[str, object]:
+    return {
+        "status": "unavailable",
+        "message": message,
+        "note": (
+            "在配置可靠在线价格源之前，系统不会生成市场倍数和价格回测结论。"
+        ),
+    }
+
+
+def build_filing_event_validation(
+    filings: list[NormalizedFiling],
+    price_response: MarketPriceResponse,
+) -> dict[str, object]:
+    events: list[dict[str, object]] = []
+    for filing in filings:
+        if filing.filing_type not in {"10-K", "10-Q"}:
+            continue
+        try:
+            filed_date = date.fromisoformat(filing.filed_at)
+        except ValueError:
+            continue
+        entry = first_bar_on_or_after(price_response.bars, filed_date)
+        if entry is None:
+            continue
+        event = {
+            "filing_type": filing.filing_type,
+            "filing_date": filing.filed_at,
+            "entry_date": entry.date.isoformat(),
+            "entry_price": entry.close,
+            "return_90d": forward_return(price_response.bars, entry.date, 90),
+            "return_180d": forward_return(price_response.bars, entry.date, 180),
+            "return_365d": forward_return(price_response.bars, entry.date, 365),
+        }
+        if any(event[key] is not None for key in ("return_90d", "return_180d", "return_365d")):
+            events.append(event)
+        if len(events) >= 12:
+            break
+
+    completed_180d = [
+        cast(Decimal, event["return_180d"]) for event in events if event["return_180d"] is not None
+    ]
+    if not completed_180d:
+        return build_unavailable_validation_payload(
+            "已完成的申报后价格窗口不足，暂时无法验证当前研究结论。"
+        ) | {
+            "events": events,
+            "source_name": price_response.metadata.source_name,
+            "source_url": price_response.metadata.source_url,
+            "retrieved_at": price_response.metadata.retrieved_at,
+            "source_hash": price_response.metadata.source_hash,
+        }
+
+    positive = [value for value in completed_180d if value > 0]
+    median_180d = sorted(completed_180d)[len(completed_180d) // 2]
+    hit_rate = Decimal(len(positive)) / Decimal(len(completed_180d))
+    verdict = (
+        "历史验证支持继续研究"
+        if median_180d > Decimal("0") and hit_rate >= Decimal("0.50")
+        else "历史验证不足，需要提高安全边际或等待更强证据"
+    )
+    return {
+        "status": "ok",
+        "methodology": (
+            "仅使用当时已经公开的 10-K/10-Q 申报日期，从申报日后第一个交易日开始，"
+            "计算后续 90/180/365 天日收盘价收益。"
+        ),
+        "source_name": price_response.metadata.source_name,
+        "source_url": price_response.metadata.source_url,
+        "retrieved_at": price_response.metadata.retrieved_at,
+        "source_hash": price_response.metadata.source_hash,
+        "events": events,
+        "summary": {
+            "sample_size": len(completed_180d),
+            "median_180d_return": median_180d,
+            "positive_180d_hit_rate": hit_rate,
+        },
+        "verdict": verdict,
+        "limitations": [
+            "这是事件研究验证，不是完整估值因子回测。",
+            "它不能证明未来收益，也未纳入税费、滑点、仓位管理或相对基准收益。",
+        ],
+    }
+
+
+def build_unavailable_validation_payload(message: str) -> dict[str, object]:
+    return {
+        "status": "unavailable",
+        "message": message,
+        "events": [],
+        "summary": {},
+        "limitations": [
+            "历史验证需要可追溯的在线价格历史。",
+            "未经验证的研究立场不能单独作为决策依据。",
+        ],
+    }
+
+
+def build_investor_decision(
+    profile: dict[str, object],
+    calculations: list[CalculationResult],
+    valuation: dict[str, object],
+    market_price: dict[str, object],
+    validation: dict[str, object],
+    confidence: Decimal,
+) -> dict[str, object]:
+    ok_metrics = {
+        calculation.metric: calculation
+        for calculation in calculations
+        if calculation.status == "ok"
+    }
+    missing_metrics = [
+        calculation.metric
+        for calculation in calculations
+        if calculation.status == "unavailable"
+    ]
+    validation_ok = validation.get("status") == "ok"
+    market_ok = market_price.get("status") == "ok"
+    valuation_ready = valuation.get("status") == "completed"
+    if confidence >= Decimal("0.80") and market_ok and validation_ok:
+        stance = "高优先级跟踪"
+        action = "可以进入个人研究候选池，但需要等待估值、增长和风险条件同时满足。"
+    elif confidence >= Decimal("0.70") and market_ok:
+        stance = "继续跟踪，暂不形成强结论"
+        action = "先补齐估值与回测证据，再决定是否进入候选池。"
+    else:
+        stance = "证据不足"
+        action = "当前只能阅读事实和风险，不能形成可执行研究结论。"
+
+    revenue_growth = ok_metrics.get("revenue_growth")
+    gross_margin = ok_metrics.get("gross_margin")
+    price_context = (
+        f"最新在线日收盘价为 {market_price.get('latest_close')} 美元/股，日期为 "
+        f"{market_price.get('latest_date')}。"
+        if market_ok
+        else "在线市场价格暂不可用。"
+    )
+    return {
+        "stance": stance,
+        "action": action,
+        "not_personalized_advice": (
+            "这是研究流程输出，不是个性化买卖建议，也不是收益承诺。"
+        ),
+        "why_it_matters": [
+            (
+                f"{profile['name']} 需要同时评估需求持续性、毛利率可持续性、再投资空间"
+                "和估值敏感性。"
+            ),
+            (
+                "个人投资者不能只看公司质量，还需要价格纪律；好公司不等于任何价格都合理。"
+            ),
+            (
+                "当数据缺口、低置信度或历史验证不足出现时，研究结论必须自动降级。"
+            ),
+        ],
+        "current_price_context": price_context,
+        "supporting_evidence": [
+            (
+                "收入增长指标状态："
+                f"{status_label(revenue_growth.status if revenue_growth else None)}。"
+            ),
+            f"毛利率指标状态：{status_label(gross_margin.status if gross_margin else None)}。",
+            f"估值引擎状态：{status_label(str(valuation.get('status')))}。",
+            f"历史验证状态：{status_label(str(validation.get('status')))}。",
+        ],
+        "decision_rules": [
+            "只有收入质量、现金转化和利润率可持续性都有来源支持时，才允许上调研究优先级。",
+            "必须先写清悲观情景和下行空间，再判断估值是否有吸引力。",
+            "关键指标缺失、过期、冲突，或申报后 180 天历史验证偏弱时，自动下调结论。",
+            "在实时价格、市值、股本和基准对比接入前，不输出仓位建议。",
+        ],
+        "must_verify_next": [
+            "从最新 10-K/10-Q 原文验证分部收入质量和客户集中度。",
+            "补齐当前市值、摊薄股本、净现金/净债务，以及不依赖卖方一致预期的估值假设。",
+            "用非公司来源验证供应链瓶颈和交期指标。",
+            "补充相对 Nasdaq 100 或半导体同业的基准收益验证。",
+        ],
+        "missing_evidence": missing_metrics[:10],
+        "valuation_ready": valuation_ready,
+    }
+
+
+def first_bar_on_or_after(bars: list[PriceBar], target: date) -> PriceBar | None:
+    for bar in bars:
+        if bar.date >= target:
+            return bar
+    return None
+
+
+def forward_return(bars: list[PriceBar], start: date, days: int) -> Decimal | None:
+    entry = first_bar_on_or_after(bars, start)
+    exit_bar = first_bar_on_or_after(bars, date.fromordinal(start.toordinal() + days))
+    if entry is None or exit_bar is None:
+        return None
+    return calculate_return(entry.close, exit_bar.close)
+
+
+def calculate_return(start: Decimal, end: Decimal) -> Decimal | None:
+    if start == 0:
+        return None
+    return (end - start) / start
+
+
+def status_label(status: str | None) -> str:
+    labels = {
+        "ok": "可用",
+        "completed": "完成",
+        "partial": "部分可用",
+        "unavailable": "不可用",
+    }
+    return labels.get(status or "unavailable", status or "不可用")
 
 
 def build_report_sections(

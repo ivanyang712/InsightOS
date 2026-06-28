@@ -9,9 +9,10 @@ class Settings(BaseSettings):
     app_env: str = "local"
     database_url: str = "postgresql+psycopg://insightos:insightos@localhost:5432/insightos"
     redis_url: str = "redis://localhost:6379/0"
-    backend_cors_origins: str = Field(default="http://localhost:3000")
+    backend_cors_origins: str = Field(default="http://localhost:3000,http://127.0.0.1:3000")
     sec_user_agent: str = Field(default="InsightOS/0.1 contact=research@example.com")
     fred_api_key: str | None = None
+    market_data_provider: str = "none"
     connector_timeout_seconds: float = 10.0
     connector_cache_ttl_seconds: int = 300
 

@@ -21,12 +21,12 @@ const views: Array<{ id: DemoView; label: string }> = [
 ];
 
 export function DemoResearchPanel() {
-  const [state, setState] = useState<DemoState>({ status: "loading" });
+  const [state, setState] = useState<DemoState>({ status: "ready", data: fallbackDemoBundle });
   const [activeView, setActiveView] = useState<DemoView>("company");
 
   useEffect(() => {
     let active = true;
-    fetchDemoBundle()
+    Promise.race([fetchDemoBundle(), fallbackAfterDelay(fallbackDemoBundle)])
       .then((data) => {
         if (active) {
           setState({ status: "ready", data });
@@ -45,16 +45,16 @@ export function DemoResearchPanel() {
   }, []);
 
   if (state.status === "loading") {
-    return <section className="demo-panel">Loading research demo...</section>;
+    return <section className="demo-panel">正在加载研究演示...</section>;
   }
 
   const { nvidia, industry, comparison } = state.data;
-  const sourceLabel = state.data.source === "api" ? "Backend API" : "Synthetic fallback";
+  const sourceLabel = state.data.source === "api" ? "后端 API" : "离线演示数据";
 
   return (
     <section className="demo-panel">
       <div className="panel-heading">
-        <p className="eyebrow">Research Workflow Demo</p>
+        <p className="eyebrow">研究工作流演示</p>
         <h2>InsightOS 投研工作台体验</h2>
         <p>{nvidia.demo_notice}</p>
         <span className={state.data.source === "api" ? "badge" : "badge warning"}>
@@ -80,17 +80,17 @@ export function DemoResearchPanel() {
       {activeView === "company" ? (
         <div className="workspace-grid">
           <article className="workspace-panel wide">
-            <p className="eyebrow">Company Research Agent</p>
-            <h3>{nvidia.company?.name ?? "Nvidia"} Research Packet</h3>
+            <p className="eyebrow">公司研究 Agent</p>
+            <h3>{nvidia.company?.name ?? "Nvidia"} 研究包</h3>
             <p>{nvidia.research_output.executive_summary}</p>
             <div className="metric-strip">
-              <span>Archetype: {nvidia.company?.archetype?.name ?? "Semiconductor"}</span>
-              <span>Confidence: {nvidia.agent_report?.confidence_score ?? "0.9000"}</span>
-              <span>Advice language: blocked</span>
+              <span>公司类型: {nvidia.company?.archetype?.name ?? "半导体"}</span>
+              <span>可信度: {nvidia.agent_report?.confidence_score ?? "0.9000"}</span>
+              <span>买卖建议语言: 已拦截</span>
             </div>
           </article>
           <article className="workspace-panel">
-            <h3>Risks</h3>
+            <h3>风险</h3>
             <ul>
               {nvidia.research_output.risks.slice(0, 4).map((risk) => (
                 <li key={risk}>{risk}</li>
@@ -98,7 +98,7 @@ export function DemoResearchPanel() {
             </ul>
           </article>
           <article className="workspace-panel">
-            <h3>Open Questions</h3>
+            <h3>待验证问题</h3>
             <ul>
               {(nvidia.agent_report?.open_questions ?? []).map((question) => (
                 <li key={question}>{question}</li>
@@ -111,12 +111,12 @@ export function DemoResearchPanel() {
       {activeView === "valuation" ? (
         <div className="workspace-grid">
           <article className="workspace-panel wide">
-            <p className="eyebrow">Deterministic Calculation Service</p>
+            <p className="eyebrow">确定性计算服务</p>
             <h3>DCF / EV-Sales / PE 情景</h3>
             <div className="scenario-grid">
               {Object.entries(nvidia.research_output.bull_base_bear).map(([scenario, values]) => (
                 <div className="scenario-card" key={scenario}>
-                  <strong>{scenario.toUpperCase()}</strong>
+                  <strong>{scenarioLabel(scenario)}</strong>
                   <span>{values.map(formatNumber).join(" / ")}</span>
                 </div>
               ))}
@@ -124,7 +124,7 @@ export function DemoResearchPanel() {
           </article>
           {(nvidia.research_output.financial_quality ?? []).slice(0, 4).map((metric) => (
             <article className="workspace-panel" key={metric.metric}>
-              <h3>{metric.metric}</h3>
+              <h3>{metricLabel(metric.metric)}</h3>
               <p className={metric.status === "ok" ? "metric-value" : "warning-text"}>
                 {metric.value === null ? "无法可靠计算" : formatNumber(metric.value)}
               </p>
@@ -137,7 +137,7 @@ export function DemoResearchPanel() {
       {activeView === "industry" ? (
         <div className="workspace-grid">
           <article className="workspace-panel wide">
-            <p className="eyebrow">Industry Research Agent</p>
+            <p className="eyebrow">行业研究 Agent</p>
             <h3>{industry.industry}</h3>
             <p>{industry.competitive_landscape?.join(" / ")}</p>
           </article>
@@ -148,11 +148,11 @@ export function DemoResearchPanel() {
             </article>
           ))}
           <article className="workspace-panel">
-            <h3>Cycle Indicators</h3>
+            <h3>周期指标</h3>
             <p>{industry.cycle_indicators.join(", ")}</p>
           </article>
           <article className="workspace-panel">
-            <h3>Tracking Metrics</h3>
+            <h3>跟踪指标</h3>
             <p>{industry.tracking_metrics.join(", ")}</p>
           </article>
         </div>
@@ -161,17 +161,17 @@ export function DemoResearchPanel() {
       {activeView === "comparison" ? (
         <div className="workspace-grid">
           <article className="workspace-panel wide">
-            <p className="eyebrow">Peer Matrix</p>
+            <p className="eyebrow">同业评分矩阵</p>
             <h3>{comparison.comparison}</h3>
             <div className="score-table">
               {comparison.score_matrix.map((row) => (
                 <div className="score-row" key={row.ticker}>
                   <strong>{row.ticker}</strong>
-                  <span>Cloud {row.scores.cloud_growth}</span>
-                  <span>AI Capex {row.scores.ai_capex}</span>
-                  <span>FCF {row.scores.fcf}</span>
-                  <span>Moat {row.scores.moat}</span>
-                  <span>Valuation {row.scores.valuation}</span>
+                  <span>云业务增长 {row.scores.cloud_growth}</span>
+                  <span>AI 资本开支 {row.scores.ai_capex}</span>
+                  <span>自由现金流 {row.scores.fcf}</span>
+                  <span>竞争壁垒 {row.scores.moat}</span>
+                  <span>估值吸引力 {row.scores.valuation}</span>
                 </div>
               ))}
             </div>
@@ -182,14 +182,14 @@ export function DemoResearchPanel() {
       {activeView === "quality" ? (
         <div className="workspace-grid">
           <article className="workspace-panel wide">
-            <p className="eyebrow">Risk Auditor Agent</p>
+            <p className="eyebrow">风险审计 Agent</p>
             <h3>研究质量审计</h3>
             <p>
-              Facts、Calculations、Assumptions、Interpretation、Risks、Open Questions 已分区输出。
+              已验证事实、计算结果、关键假设、主观判断、风险和待验证问题已分区输出。
             </p>
           </article>
           <article className="workspace-panel">
-            <h3>Evidence</h3>
+            <h3>证据</h3>
             <ul>
               {(nvidia.agent_report?.facts ?? []).map((fact) => (
                 <li key={fact}>{fact}</li>
@@ -197,7 +197,7 @@ export function DemoResearchPanel() {
             </ul>
           </article>
           <article className="workspace-panel">
-            <h3>Quality Flags</h3>
+            <h3>质量标记</h3>
             <ul>
               {(nvidia.quality_issues ?? []).map((issue) => (
                 <li key={issue.category}>
@@ -220,4 +220,29 @@ function formatNumber(value: string | number) {
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 2
   }).format(numeric);
+}
+
+function fallbackAfterDelay<T>(value: T, ms = 2200): Promise<T> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value), ms);
+  });
+}
+
+function metricLabel(metric: string) {
+  const labels: Record<string, string> = {
+    revenue_growth: "收入增长率",
+    gross_margin: "毛利率",
+    free_cash_flow_margin: "自由现金流率",
+    inventory_turnover: "库存周转率"
+  };
+  return labels[metric] ?? metric;
+}
+
+function scenarioLabel(scenario: string) {
+  const labels: Record<string, string> = {
+    bear: "悲观情景",
+    base: "基准情景",
+    bull: "乐观情景"
+  };
+  return labels[scenario] ?? scenario.toUpperCase();
 }

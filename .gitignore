@@ -10,11 +10,13 @@ __pycache__/
 .coverage
 htmlcov/
 .venv/
+.venv-backend/
 
 node_modules/
 .next/
 *.tsbuildinfo
 coverage/
 dist/
+.preview/
 
 .DS_Store

@@ -1,8 +1,8 @@
 # InsightOS
 
-InsightOS 是一个 AI 投资研究系统骨架。当前版本包含本地可运行的全栈基础设施、证据链数据模型、SEC/FRED 可信数据连接器框架、财务分析与估值引擎、行业 archetype、Agent 编排骨架和研究质量检查。
+InsightOS 是一个面向个人使用的 AI 美股投资研究系统骨架。第一阶段聚焦 AI 相关美股公司，目标是把公司数据、财务计算、产业链位置、估值假设、风险、催化剂和证据链放进同一个研究工作台。
 
-默认演示和测试使用合成数据 fixture，不把合成数据当作生产市场数据。真实外部数据仅通过配置后的 SEC/FRED connector 拉取，并先进入 raw layer。
+当前首页的单只股票研究入口直接连接 SEC EDGAR / XBRL 在线数据。测试 fixture 只保留在自动化测试和内部开发场景中，不作为页面研究结果展示。
 
 ## 技术栈
 
@@ -48,9 +48,7 @@ docker compose up --build
 - Backend health check: http://localhost:8000/health
 - Backend API docs: http://localhost:8000/docs
 
-首页会调用后端 `/health`，展示 API、数据库和 Redis 的健康状态。
-首页还会调用 demo API，展示 Nvidia 公司研究、全球半导体设备产业、云平台对比三个可复算演示。
-首页顶部现在有单只股票研究入口，默认跑 `AAPL`。输入 `AAPL`、`NVDA`、`MSFT`、`GOOGL`、`AMZN`、`KO` 或 `JPM` 后，会调用后端单股研究 API，并展示 SEC/XBRL 数据、财务指标、DCF 情景、证据链和质量审计。
+首页顶部有单只股票研究入口，默认跑 `NVDA`。第一阶段在线股票池对齐 BRD，支持 `NVDA`、`MSFT`、`GOOGL`、`AMZN`、`META`、`AMD`、`AVGO`、`TSM`、`ASML`、`PLTR`。页面会展示 SEC 来源、来源 URL、拉取时间、数据哈希、期间、币种和置信度。
 
 ### 无 Docker 的本地预览
 
@@ -70,7 +68,7 @@ npm run preview:local
 bash scripts/start-local.sh
 ```
 
-这个脚本会清理旧的 `3000` / `8000` 端口进程，然后启动后端和 Next.js 前端。当前前端带有 synthetic fallback：即使后端还没连上，也可以先在首页体验公司研究、估值情景、行业地图、同业对比和质量审计。
+这个脚本会清理旧的 `3000` / `8000` 端口进程，然后启动后端和 Next.js 前端。单只股票研究依赖后端在线接口；如果后端没有启动，页面会明确显示在线接口不可用，不会用本地样例替代。
 
 ## 常见启动问题
 
@@ -115,7 +113,7 @@ bash scripts/start-local.sh
 - Frontend: http://localhost:3000
 - Backend health: http://localhost:8000/health
 
-如果前端显示 `Synthetic fallback`，说明前端可用，但后端 API 暂时没有连上；页面仍会展示可体验的研究工作台。
+如果后端没有连上，单只股票研究区会明确显示在线接口不可用。请先确认后端服务已经启动，再刷新前端页面。
 
 注意是 `docker compose`，中间是空格，不是 `docker-compose`。
 
@@ -157,12 +155,9 @@ npm test
 - Backend metadata: http://localhost:8000/
 - Backend health: http://localhost:8000/health
 - API docs: http://localhost:8000/docs
-- Demo Nvidia report: http://localhost:8000/api/demo/research/nvidia
-- Demo semiconductor equipment industry: http://localhost:8000/api/demo/industry/semiconductor-equipment
-- Demo Microsoft/Google/Amazon comparison: http://localhost:8000/api/demo/comparison/cloud-platforms
 - Archetype examples: http://localhost:8000/api/archetypes/examples
 - Financial quality API: `POST /api/analysis/financial-quality`
-- Single stock research API: `GET /api/research/company/AAPL`
+- Single stock research API: `GET /api/research/company/NVDA`
 - DCF API: `POST /api/analysis/valuation/dcf`
 - Multiple valuation API: `POST /api/analysis/valuation/multiple`
 - Reverse DCF API: `POST /api/analysis/valuation/reverse-dcf`
@@ -192,6 +187,7 @@ curl http://localhost:8000/api/connectors/fred/series/FEDFUNDS
 ## 研究系统文档
 
 - PRD: [docs/prd.md](docs/prd.md)
+- BRD: [docs/BRD.md](docs/BRD.md)
 - 数据字典: [docs/data-dictionary.md](docs/data-dictionary.md)
 - 公式文档: [docs/formulas.md](docs/formulas.md)
 - 行业 archetype JSON schema: [docs/archetype-schema.json](docs/archetype-schema.json)

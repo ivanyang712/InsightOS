@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { dirname } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const port = Number(process.env.PORT ?? 3000);
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -383,6 +385,15 @@ const html = `<!doctype html>
     </script>
   </body>
 </html>`;
+
+const staticPreviewPath = process.env.STATIC_PREVIEW_PATH;
+
+if (staticPreviewPath) {
+  mkdirSync(dirname(staticPreviewPath), { recursive: true });
+  writeFileSync(staticPreviewPath, html, "utf8");
+  console.log(`InsightOS static preview: ${staticPreviewPath}`);
+  process.exit(0);
+}
 
 createServer((request, response) => {
   if (request.url === "/" || request.url?.startsWith("/?")) {

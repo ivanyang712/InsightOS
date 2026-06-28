@@ -14,6 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        {/* The in-app preview can block Next's /_next/static/css path; this public CSS keeps previews styled. */}
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
+        <link href="/insightos.css" rel="stylesheet" />
+      </head>
       <body>{children}</body>
     </html>
   );

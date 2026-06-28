@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
-import { fetchHealth, getApiBaseUrl } from "./health";
+import { fetchHealth, getApiBaseUrl, normalizeHealthResponse } from "./health";
 
 describe("health api helpers", () => {
   afterEach(() => {
@@ -34,5 +34,17 @@ describe("health api helpers", () => {
     );
 
     assert.deepEqual(await fetchHealth(), payload);
+  });
+
+  it("normalizes partial health responses", () => {
+    assert.deepEqual(normalizeHealthResponse({ detail: "Not Found" }), {
+      status: "unavailable",
+      service: "InsightOS API",
+      environment: "unknown",
+      checks: {
+        database: false,
+        redis: false
+      }
+    });
   });
 });

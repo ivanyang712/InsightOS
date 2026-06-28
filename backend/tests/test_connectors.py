@@ -9,6 +9,7 @@ import pytest
 from app.connectors import ConnectorError
 from app.connectors.base import stable_hash
 from app.connectors.fred import FredConnector, normalize_fred_observations
+from app.connectors.market_prices import MarketPriceConnector, parse_stooq_csv
 from app.connectors.sec import SecConnector, normalize_company_facts, normalize_filings
 from app.services.data_ingestion import raw_record_from_response
 
@@ -85,3 +86,39 @@ def test_raw_record_preserves_payload_and_source_hash() -> None:
     assert raw.response_payload["name"] == "Apple Inc."
     assert raw.source_hash == stable_hash(payload)
     assert raw.source_url.startswith("https://data.sec.gov/submissions/")
+
+
+def test_stooq_price_normalization_extracts_daily_bars() -> None:
+    content = "\n".join(
+        [
+            "Date,Open,High,Low,Close,Volume",
+            "2025-01-02,100,105,99,104,1200000",
+            "2025-01-03,104,108,103,107,1300000",
+        ]
+    )
+
+    bars = parse_stooq_csv(content)
+
+    assert len(bars) == 2
+    assert bars[0].date.isoformat() == "2025-01-02"
+    assert bars[1].close == 107
+
+
+def test_market_price_connector_preserves_source_metadata() -> None:
+    content = "\n".join(
+        [
+            "Date,Open,High,Low,Close,Volume",
+            "2025-01-02,100,105,99,104,1200000",
+        ]
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=content, request=request)
+
+    connector = MarketPriceConnector(client=httpx.Client(transport=httpx.MockTransport(handler)))
+    response = connector.get_daily_prices("NVDA")
+
+    assert response.ticker == "NVDA"
+    assert response.bars[0].close == 104
+    assert response.metadata.source_name == "Stooq Daily Historical Prices"
+    assert response.metadata.source_hash
