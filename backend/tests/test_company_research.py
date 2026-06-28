@@ -57,7 +57,13 @@ def test_single_company_research_builds_traceable_sec_packet() -> None:
     assert valuation["dcf"]["base"]["status"] == "ok"
     assert report["sources"][0]["source_hash"]
     assert report["research_report"]["facts"]
-    assert "No personalized" in report["limitations"][0]
+    assert "个性化买卖建议" in report["limitations"][0]
+    assert report["investment_committee"]["conclusion"]
+    assert len(report["business_analysis"]) >= 4
+    assert len(report["industry_analysis"]) >= 5
+    assert len(report["supply_chain_bottlenecks"]) >= 1
+    assert len(report["quality_scorecard"]) >= 5
+    assert len(report["research_standard"]) >= 3
 
 
 def test_single_company_research_adds_market_validation_when_prices_exist() -> None:
