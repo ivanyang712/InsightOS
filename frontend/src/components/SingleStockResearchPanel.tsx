@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
 
 import {
   CompanyResearchBundle,
@@ -89,6 +89,20 @@ export function SingleStockResearchPanel({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void runResearch(tickerInput);
+  }
+
+  function switchView(
+    event: MouseEvent<HTMLAnchorElement>,
+    view: ResearchView,
+    ticker: string
+  ) {
+    event.preventDefault();
+    setActiveView(view);
+    window.history.replaceState(
+      null,
+      "",
+      `/?ticker=${encodeURIComponent(ticker)}&view=${view}#single-stock`
+    );
   }
 
   const report = state.status === "ready" ? state.data.report : null;
@@ -187,7 +201,7 @@ export function SingleStockResearchPanel({
                 className={activeView === view.id ? "tab-button active" : "tab-button"}
                 href={`/?ticker=${encodeURIComponent(report.ticker)}&view=${view.id}#single-stock`}
                 key={view.id}
-                onClick={() => setActiveView(view.id)}
+                onClick={(event) => switchView(event, view.id, report.ticker)}
                 role="tab"
               >
                 {view.label}
